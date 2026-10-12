@@ -1,0 +1,74 @@
+services:
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    environment:
+      PRETIUM_DATABASE_URL: postgresql+psycopg://pretium:pretium@postgres:5432/pretium
+      PRETIUM_REDIS_URL: redis://redis:6379/0
+      PRETIUM_ADMIN_API_KEY: ${PRETIUM_ADMIN_API_KEY:-change-me}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  worker:
+    build: .
+    command: celery -A app.worker worker --loglevel=info
+    environment:
+      PRETIUM_DATABASE_URL: postgresql+psycopg://pretium:pretium@postgres:5432/pretium
+      PRETIUM_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  beat:
+    build: .
+    command: celery -A app.worker beat --loglevel=info
+    environment:
+      PRETIUM_DATABASE_URL: postgresql+psycopg://pretium:pretium@postgres:5432/pretium
+      PRETIUM_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - worker
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: pretium
+      POSTGRES_PASSWORD: pretium
+      POSTGRES_DB: pretium
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pretium"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    ports:
+      - "6379:6379"
+
+  nginx:
+    image: nginx:stable
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

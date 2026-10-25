@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 from fastapi import Header, HTTPException, status
 
 from app.core.config import get_settings
@@ -15,7 +16,7 @@ def hash_key(raw: str) -> str:
 def verify_key(raw: str, hashed: str) -> bool:
     try:
         return _hasher.verify(hashed, raw)
-    except Exception:
+    except (InvalidHashError, VerificationError, VerifyMismatchError):
         return False
 
 def require_admin(x_api_key: str | None = Header(alias="X-API-Key", default=None)) -> None:

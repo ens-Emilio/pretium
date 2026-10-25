@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from app.schemas.normalized import NormalizedPrice
 
 from .base import BaseAdapter
@@ -7,7 +9,7 @@ class LiteLLMAdapter(BaseAdapter):
     source = "litellm"
     url = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
 
-    _UNITS = {
+    _UNITS: ClassVar[dict[str, str]] = {
         "input_cost_per_token": "per_1m_input_tokens",
         "output_cost_per_token": "per_1m_output_tokens",
     }

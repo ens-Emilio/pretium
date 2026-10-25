@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
@@ -16,9 +17,9 @@ settings = get_settings()
 
 @router.get("/history", response_model=list[HistoryOut])
 def price_history(
+    db: Annotated[Session, Depends(get_db)],
     since: datetime | None = None,
     limit: int = Query(default=100, le=1000),
-    db: Session = Depends(get_db),
 ):
     """Global price history across all models, newest first."""
     cache_key = f"prices_history:{since}:{limit}"

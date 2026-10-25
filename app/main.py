@@ -2,7 +2,9 @@ import time
 
 from fastapi import FastAPI, Request, Response
 from redis import Redis
+from redis.exceptions import RedisError
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.v1.router import api_router
@@ -26,12 +28,12 @@ def root_health() -> dict:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         db_ok = True
-    except Exception as e:
+    except SQLAlchemyError as e:
         logger.error("db_health_failed", error=str(e))
     redis_ok = False
     try:
         redis_ok = bool(_redis.ping())
-    except Exception as e:
+    except RedisError as e:
         logger.error("redis_health_failed", error=str(e))
     return {"status": "ok" if db_ok and redis_ok else "degraded", "db": db_ok, "redis": redis_ok}
 

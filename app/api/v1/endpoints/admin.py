@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 from redis import Redis
 from sqlalchemy import select
@@ -35,7 +37,7 @@ def reindex() -> dict:
 
 
 @router.get("/health")
-def health(db: Session = Depends(get_db)) -> dict:
+def health(db: Annotated[Session, Depends(get_db)]) -> dict:
     last_runs = db.execute(
         select(IngestionRun).order_by(IngestionRun.started_at.desc()).limit(5)
     ).scalars().all()

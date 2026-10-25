@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -16,13 +17,13 @@ settings = get_settings()
 
 @router.get("", response_model=list[ModelOut])
 def list_models(
+    db: Annotated[Session, Depends(get_db)],
     modality: str | None = None,
     provider: str | None = None,
     min_price: float | None = None,
     max_price: float | None = None,
     context_min: int | None = None,
     updated_since: datetime | None = None,
-    db: Session = Depends(get_db),
 ):
     cache_key = f"models:{modality}:{provider}:{min_price}:{max_price}:{context_min}:{updated_since}"
     if cached := cache_get_json(cache_key):
@@ -59,13 +60,14 @@ def _price_filter(m: Model, min_price: float | None, max_price: float | None) ->
     )
     if min_price is not None and (input_price is None or input_price < min_price):
         return False
-    if max_price is not None and (input_price is None or input_price > max_price):
-        return False
-    return True
+    return not (
+        max_price is not None
+        and (input_price is None or input_price > max_price)
+    )
 
 
 @router.get("/{model_id}", response_model=ModelOut)
-def get_model(model_id: int, db: Session = Depends(get_db)):
+def get_model(model_id: int, db: Annotated[Session, Depends(get_db)]):
     cache_key = f"model:{model_id}"
     if cached := cache_get_json(cache_key):
         return cached
@@ -78,7 +80,7 @@ def get_model(model_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{model_id}/history", response_model=list[HistoryOut])
-def model_history(model_id: int, db: Session = Depends(get_db)):
+def model_history(model_id: int, db: Annotated[Session, Depends(get_db)]):
     cache_key = f"history:{model_id}"
     if cached := cache_get_json(cache_key):
         return cached
@@ -95,7 +97,7 @@ def model_history(model_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{model_id}/prices", response_model=list[PriceOut])
-def model_prices(model_id: int, db: Session = Depends(get_db)):
+def model_prices(model_id: int, db: Annotated[Session, Depends(get_db)]):
     return (
         db.execute(select(ModelPrice).where(ModelPrice.model_id == model_id))
         .scalars()

@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -14,11 +16,11 @@ settings = get_settings()
 
 @router.get("/compare", response_model=list[CompareOut])
 def compare(
+    db: Annotated[Session, Depends(get_db)],
     unit: str = "per_1m_input_tokens",
     modality: str | None = None,
     provider: str | None = None,
     limit: int = 50,
-    db: Session = Depends(get_db),
 ):
     """Latest price per model for a unit, cheapest first."""
     cache_key = f"compare:{unit}:{modality}:{provider}:{limit}"

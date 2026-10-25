@@ -18,10 +18,12 @@ Open API for comparing AI model prices across providers.
 ## Quick Start
 
 ```bash
+cp .env.example .env
+# Troque os valores de exemplo antes de qualquer uso fora de localhost.
 docker compose up -d
 ```
 
-API available at `http://localhost:8000` (or behind nginx at `http://localhost`).
+API local em `http://localhost:8080` (Nginx) e `http://localhost:8000` (API).
 
 ## Endpoints
 
@@ -58,9 +60,10 @@ See [OPERATIONS.md](OPERATIONS.md) for VPS deployment (Docker Compose) and maint
 
 | Variable | Default | Description |
 |---|---|---|
-| `PRETIUM_DATABASE_URL` | `postgresql+psycopg://pretium:pretium@postgres:5432/pretium` | PostgreSQL connection |
+| `POSTGRES_PASSWORD` | required | Senha do PostgreSQL local; fica apenas no `.env` ignorado |
+| `PRETIUM_DATABASE_URL` | derived in Compose | PostgreSQL connection |
 | `PRETIUM_REDIS_URL` | `redis://redis:6379/0` | Redis connection |
-| `PRETIUM_ADMIN_API_KEY` | `change-me` | Admin key (change in production!) |
+| `PRETIUM_ADMIN_API_KEY` | required | Admin key; nunca use `change-me` fora de localhost |
 | `PRETIUM_CACHE_TTL_LIST` | `60` | Models list cache TTL (s) |
 | `PRETIUM_CACHE_TTL_DETAIL` | `60` | Model detail cache TTL (s) |
 | `PRETIUM_CACHE_TTL_HISTORY` | `300` | History/compare cache TTL (s) |

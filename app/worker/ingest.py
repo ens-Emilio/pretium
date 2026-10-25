@@ -2,12 +2,13 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import redis
+
 from app.adapters.registry import ADAPTERS
 from app.core.config import get_settings
+from app.core.db import SessionLocal
 from app.core.logging import logger
 from app.core.metrics import INGESTION_CHANGES
 from app.core.security import utcnow
-from app.core.db import SessionLocal
 from app.models import IngestionRun, Model, ModelPrice, Provider, RawPayload
 
 _redis = redis.Redis.from_url(get_settings().redis_url, decode_responses=True)

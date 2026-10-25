@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -10,5 +12,5 @@ router = APIRouter(prefix="/providers", tags=["providers"])
 
 
 @router.get("", response_model=list[ProviderOut])
-def list_providers(db: Session = Depends(get_db)):
+def list_providers(db: Annotated[Session, Depends(get_db)]):
     return db.execute(select(Provider)).scalars().all()
